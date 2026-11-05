@@ -14,8 +14,33 @@ Beslissing: inzetten als de score hoger is dan 1/odds
 
 ## Metrieken:
 ML: log loss
-Software: antwoordtijd onder 1 seconde
+Software: % tips op tijd en up-to-date (ten laatste 24u voor de aftrap, met de uitslagen van de vorige speeldag)
 Business: winst in € bij €10 per tip, vergeleken met niet inzetten
+
+## Draaien
+
+Alles vanuit de hoofdmap van de repo (niet vanuit `src/`).
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1      # macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+
+pytest                             # tests
+ruff check . ; ruff format --check .
+python -m src.train                # traint en schrijft models/model.joblib
+```
+
+## Wat waar staat
+
+```
+configs/default.yaml   paden, features, seed. Geen code
+src/                   de code: config, schema (Pandera), data, train, predict
+tests/                 tests op de data en het model
+data/                  de datasets
+notebooks/             data-exploratie
+models/                wordt aangemaakt door src.train, niet in git
+```
 
 ## Planning
  Deel 1: projectvoorstel
