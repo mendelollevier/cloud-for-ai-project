@@ -3,8 +3,8 @@
 import pytest
 
 from src.config import laad_config
-from src.data import laad_data
-from src.train import train
+from src.data import laad_seizoenen
+from src.train import laad_en_maak_features, train
 
 
 @pytest.fixture(scope="session")
@@ -13,15 +13,22 @@ def cfg():
 
 
 @pytest.fixture(scope="session")
-def df(cfg):
-    return laad_data(cfg["data"]["pad"])
+def ruw(cfg):
+    """De seizoenen zoals ze ingelezen worden, nog zonder features."""
+    return laad_seizoenen(cfg["data"]["pad"])
 
 
 @pytest.fixture(scope="session")
-def model_en_auc(df, cfg):
+def df(cfg):
+    """Gevalideerd en met features: wat het model te zien krijgt."""
+    return laad_en_maak_features(cfg)
+
+
+@pytest.fixture(scope="session")
+def model_en_scores(df, cfg):
     return train(df, cfg)
 
 
 @pytest.fixture(scope="session")
-def model(model_en_auc):
-    return model_en_auc[0]
+def model(model_en_scores):
+    return model_en_scores[0]

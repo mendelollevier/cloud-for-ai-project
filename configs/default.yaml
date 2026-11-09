@@ -1,29 +1,31 @@
-# Alles wat je zou willen veranderen zonder code aan te raken, staat hier.
-# Paden zijn relatief ten opzichte van de projectmap.
-
 data:
-  pad: data/telko_klanten.csv
-  id_kolom: klant_id
+  pad: data/seizoenen
 
-doel: opgezegd
+doel: thuiswinst
 
 features:
   numeriek:
-    - maanden_klant
-    - maandbedrag
-    - data_gb
-    - klantendienst_contacten
-    - toestel_via_telko
-  categorisch:
-    - contract
-  # email_bekend staat hier bewust niet: dat was het lek uit labo 4.
+    - verschil_vorm_punten
+    - verschil_vorm_voor
+    - verschil_vorm_tegen
+    - verschil_vorm_schoten
+    - verschil_aantal_vorige
+  categorisch: []
 
 split:
-  test_grootte: 0.2
+  train: ["21-22", "22-23", "23-24"]
+  validatie: "24-25"
+  test: "25-26"
+  live: "26-27"
   seed: 42
 
 model:
   pad: models/model.joblib
   max_iter: 1000
-  # Een model dat slechter doet dan dit, mag niet naar productie.
-  minimum_auc: 0.65
+  # Slechter dan baseline 1 (vast percentage) mag niet naar productie.
+  maximum_log_loss: 0.68
+
+winst:
+  inzet: 10            # euro per tip
+  minimum_tips: 20     # een drempel met minder tips is geluk, geen patroon
+  drempels: [0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50]

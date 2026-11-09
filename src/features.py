@@ -9,7 +9,7 @@ VORMKOLOMMEN = ["vorm_punten", "vorm_voor", "vorm_tegen", "vorm_schoten", "aanta
 
 def gewogen(reeks):
     """Gewogen gemiddelde van de vorige wedstrijden. Lege waarden tellen niet mee."""
-    w = GEWICHTEN[-len(reeks):]
+    w = GEWICHTEN[-len(reeks) :]
     ok = ~np.isnan(reeks)
     if not ok.any():
         return np.nan
@@ -21,16 +21,28 @@ def maak_features(df):
     df = df.copy()
 
     # 1. Eén rij per ploeg per wedstrijd, thuis en uit samen.
-    thuis = pd.DataFrame({
-        "wedstrijd": df.index, "Date": df["Date"], "ploeg": df["HomeTeam"],
-        "voor": df["FTHG"], "tegen": df["FTAG"], "schoten": df["HS"],
-        "punten": df["FTR"].map({"H": 3, "D": 1, "A": 0}),
-    })
-    uit = pd.DataFrame({
-        "wedstrijd": df.index, "Date": df["Date"], "ploeg": df["AwayTeam"],
-        "voor": df["FTAG"], "tegen": df["FTHG"], "schoten": df["AS"],
-        "punten": df["FTR"].map({"H": 0, "D": 1, "A": 3}),
-    })
+    thuis = pd.DataFrame(
+        {
+            "wedstrijd": df.index,
+            "Date": df["Date"],
+            "ploeg": df["HomeTeam"],
+            "voor": df["FTHG"],
+            "tegen": df["FTAG"],
+            "schoten": df["HS"],
+            "punten": df["FTR"].map({"H": 3, "D": 1, "A": 0}),
+        }
+    )
+    uit = pd.DataFrame(
+        {
+            "wedstrijd": df.index,
+            "Date": df["Date"],
+            "ploeg": df["AwayTeam"],
+            "voor": df["FTAG"],
+            "tegen": df["FTHG"],
+            "schoten": df["AS"],
+            "punten": df["FTR"].map({"H": 0, "D": 1, "A": 3}),
+        }
+    )
     per_ploeg = pd.concat([thuis, uit]).sort_values(["ploeg", "Date"])
 
     # 2. Gewogen vorm. shift(1): de wedstrijd zelf telt niet mee, anders is het een lek.
@@ -44,8 +56,9 @@ def maak_features(df):
 
     # 4. Terug naar één rij per wedstrijd: thuisploeg min uitploeg.
     vorm = per_ploeg.set_index(["wedstrijd", "ploeg"])
-    thuisvorm = vorm.loc[list(zip(df.index, df["HomeTeam"])), VORMKOLOMMEN].to_numpy()
-    uitvorm = vorm.loc[list(zip(df.index, df["AwayTeam"])), VORMKOLOMMEN].to_numpy()
-    verschil = pd.DataFrame(thuisvorm - uitvorm, index=df.index,
-                            columns=[f"verschil_{k}" for k in VORMKOLOMMEN])
+    thuisvorm = vorm.loc[list(zip(df.index, df["HomeTeam"], strict=True)), VORMKOLOMMEN].to_numpy()
+    uitvorm = vorm.loc[list(zip(df.index, df["AwayTeam"], strict=True)), VORMKOLOMMEN].to_numpy()
+    verschil = pd.DataFrame(
+        thuisvorm - uitvorm, index=df.index, columns=[f"verschil_{k}" for k in VORMKOLOMMEN]
+    )
     return pd.concat([df, verschil], axis=1)

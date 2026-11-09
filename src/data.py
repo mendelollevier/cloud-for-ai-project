@@ -15,6 +15,9 @@ KOLOMMEN = [
     "HS", "AS", "HST", "AST", "HF", "AF", "HC", "AC", "HY", "AY", "HR", "AR",
     "B365H", "B365D", "B365A",
 ]  # fmt: skip
+# Football-data schrijft een ploeg soms anders.
+# Eén naam per ploeg, anders lijkt het een nieuwe ploeg.
+ZELFDE_PLOEG = {"KV Mechelen": "Mechelen"}
 
 
 def laad_seizoenen(map_: str | Path) -> pd.DataFrame:
@@ -34,11 +37,14 @@ def laad_seizoenen(map_: str | Path) -> pd.DataFrame:
     alles = pd.concat(stukken, ignore_index=True)
     # dayfirst: 07/08/2026 is 7 augustus, niet 8 juli. Fout gelezen breekt de tijdsplit.
     alles["Date"] = pd.to_datetime(alles["Date"], format="%d/%m/%Y")
+    # Doel: 1 = thuiswinst, 0 = gelijk of uitwinst. Nog niet gespeeld = leeg (NaN).
+    alles["thuiswinst"] = alles["FTR"].map({"H": 1, "D": 0, "A": 0})
+    alles[["HomeTeam", "AwayTeam"]] = alles[["HomeTeam", "AwayTeam"]].replace(ZELFDE_PLOEG)
     return alles.sort_values(["Date", "Time"], kind="stable").reset_index(drop=True)
 
 
 def laad_data(
-    pad: str | Path, valideer_met: pa.DataFrameSchema | None = schema.TRAINING
+    pad: str | Path, valideer_met: pa.DataFrameSchema | None = schema.GESPEELD
 ) -> pd.DataFrame:
     """Lees een csv in en valideer hem tegen een schema.
 
